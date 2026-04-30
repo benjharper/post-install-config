@@ -22,11 +22,10 @@ This tutorial outlines the post-install configuration of the open-source help de
 
 <h2>Post-Install Configuration Objectives</h2>
 
-- Item 1
-- Item 2
-- Item 3
-- Item 4
-- Item 5
+- Set up roles and permissions for agents and users. Creating Users and Agents.
+- Configure ticket visibility and help desk functionality.
+- Configuring SLAs to define response times for tickets.
+- Adding different types of help topics to enhance efficency and user experience.
 
 <h2>Configuration Steps</h2>
 
