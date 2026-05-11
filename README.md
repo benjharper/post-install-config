@@ -6,11 +6,6 @@
 
 This repository documents **end-to-end ticket lifecycle workflows** in osTicket, from ticket creation by end users to triage, escalation, assignment, and resolution by help desk staff.
 
-This is **Part 3** of a three-part osTicket project series:
-
-- [osTicket: Prerequisites and Installation (Part 1)](https://github.com/kylekincaid/osticket-prereqs)
-- [osTicket: Post-Installation Configuration (Part 2)](https://github.com/kylekincaid/post-install-config)
-- **osTicket: Ticket Lifecycle Examples (Part 3)** (this repo)
 
 ---
 
