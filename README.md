@@ -1,160 +1,541 @@
 <p align="center">
-<img width="600" alt="osTicket Logo" src="images/osTicket Logo.png" />
-
+  <img src="https://i.imgur.com/Clzj7Xs.png" alt="osTicket logo"/>
 </p>
-<h1>osTicket: Installation</h1>
-<p>
-This project demonstrates the installation of a self-hosted osTicket help desk system on Windows and serves as the first part of a three-part series covering installation, configuration, and ticket lifecycle management. The focus is on deploying osTicket using modular infrastructure components rather than a single bundled installer, highlighting how the web server, scripting runtime, and database are prepared and integrated to support the application. This foundational setup establishes the environment that subsequent projects will build upon to explore system configuration and real-world ticket workflows.</p>
 
-<h2>2. Technologies Used</h2>
+# osTicket: Ticket Lifecycle Examples
 
-<p align="left">
-<img src="https://skillicons.dev/icons?i=azure,windows,php,mysql" />&nbsp;&nbsp;<img src="images/osticket-icon-dark.png" width="48"></p>
+This repository documents **end-to-end ticket lifecycle workflows** in osTicket, from ticket creation by end users to triage, escalation, assignment, and resolution by help desk staff.
 
- - Internet Information Services (IIS)
- - PHP
- - MySQL
- - osTicket
+This is **Part 3** of a three-part osTicket project series:
 
-<h2>3. Operating Systems</h2>
+- [osTicket: Prerequisites and Installation (Part 1)](https://github.com/kylekincaid/osticket-prereqs)
+- [osTicket: Post-Installation Configuration (Part 2)](https://github.com/kylekincaid/post-install-config)
+- **osTicket: Ticket Lifecycle Examples (Part 3)** (this repo)
 
-- Windows 10 Enterprise 22H2
+---
 
-<h2>4. High-Level Deployment Overview</h2>
+## Access URLs
 
-- Prepare the Windows server by enabling required web server roles and features.
-- Install and configure the PHP runtime and supporting dependencies.
-- Deploy and configure the database backend for osTicket.
-- Integrate all components and complete the osTicket web-based setup.
+Use the following URLs throughout this exercise:
 
-<h2>5. Deployment & Installation Steps</h2>
-Download Installation files: https://drive.google.com/file/d/1D4v2vQkaHXbWNHPZVXbRT2oAi1U71HpK/view?usp=drive_link
-<h3>1. CREATE VM IN AZURE</h3>
-Create an Azure Virtual Machine with the following settings.
+- **Admin / Analyst (Staff Control Panel):**  
+  http://localhost/osTicket/scp/login.php
 
-- Name: vm-osticket
-- Operating System: Windows 10 Enterprise 22H2
-- Size: 4vCPUs, 32GB Ram
-- Username: labuser
-- Password: Password123!
+- **End User Portal:**  
+  http://localhost/osTicket
 
-> [!NOTE]
-> Passwords are shown in this tutorial for learning purposes only. In real-world environments, it is never good practice to store passwords in plain text, credentials should always be managed securely using a password manager.
+---
 
-<h3>1. ENABLE IIS WEB SERVICES AND CGI</h3>
-Remote Desktop Connect(RDP) to the newly created VM, download the osTicket-Installation-Files.zip from the repo and unzip the whole folder unto your VM desktop. Search the start menu for "Turn Windows features on or off". In the pop-up find Internet Information Services and mark the checkbox. Expand World Wide Web > Expand Application Development Features, find CGI and mark the checkbox, and select OK and wait for features to be installed.
+## Lab Objective
 
-<details><summary>See screenshots</summary>
-<img src="images/Step 2a.PNG" width="40%" >
-</details> 
+In this section, we will:
 
-> [!NOTE]
-> Internet Information Services (IIS) is the web server that will host the osTicket application.
+- Create tickets as **end users**
+- Observe and manage ticket properties as **help desk agents**
+- Understand how **departments, SLAs, priorities, and assignments** affect ticket visibility
+- Work tickets to completion under different roles
+- Observe real-world ticketing behaviors and constraints
 
+This simulation is designed to focus on **process and workflow**, rather than just clicking buttons.
 
-<h3>2. INSTALL PHP MANAGER AND PREREQUISITES</h3>
-A. In our Installation folder, find the PHP Manager Installer (PHPManagerForIIS_V1.5.0.msi) and install it.
+---
 
-> [!NOTE]
-> osTicket is a PHP-based application, and PHP Manager allows IIS to run and manage PHP files so the application functions properly. Installing PHP and supporting runtime dependencies, ensuring version compatibility with osTicket.
+## Initial Configuration/Setup: Create Required Departments (Admin Panel)
 
-B. In our Installation folder, find the Rewrite Module (rewrite_amd64_en-US.msi) and install it.
+The ticket scenarios in this lab assume the following departments exist:
 
-> [!NOTE]
-> osTicket uses rewritten URLs to work correctly, and the Rewrite module allows IIS to handle those requests properly.
+- **SysAdmins** (used for escalation and access-control behavior)
+- **Online Banking** (used in Ticket Scenario 1)
+- **Support** (used in Ticket Scenarios 2 and 3)
+- **Maintenance** (will be deleted as part of cleanup)
 
-C. On the C: drive, create a new folder named <code>PHP</code>.  From our installation folder, unzip or extract the contents of <code>php-7.3.8-nts-Win32-VC15-x86.zip</code> into the C:\PHP folder. The extracted files contain the actual PHP runtime that IIS will use, while the PHP Manager we installed is used to configure and manage it.
+If your osTicket instance does not already have these departments, create them first using the steps below.
 
+---
 
-D. In our installaion folder, find VC_redist.x86.exe and install. We need to install the Visual C++ Redistributable because PHP depends on these runtime libraries to run correctly on Windows.
+### 1) Log into the Admin Panel
+
+1. Go to: http://localhost/osTicket/scp/login.php
+2. Log in with the admin account John (created during installation/setup)
+
+<img width="711" height="522" alt="image" src="https://github.com/user-attachments/assets/771f3089-e37b-4218-8b8e-8d8137c6ae12" />
+
+3. In the top navigation, click **Admin Panel** (if you are not already in it)
+
+<img width="1193" height="432" alt="image" src="https://github.com/user-attachments/assets/7eb9ed95-2359-4a9d-8477-77c551f382d7" />
 
 
-E. In our installation folder, find <code>mysql-5.5.62-win32.msi</code>, and install it. MySQL is installed to provide the database where osTicket stores all tickets, users, and system data. Select Typical > Install, and then Launch Configuration Wizard after installation. Choose Standard Configuration, then select Next until reaching the Modify Security Settings screen. Enter <code>root</code> for both the username and password fields, then continue by selecting Next and finally Execute and Finish.
+---
 
-<details open><summary>See screenshots</summary>
-<img src="images/Step 3 Ea.PNG" width="40%" > <img src="images/Step 3 Eb.PNG" width="40%" >
-</details> 
+### 2) Navigate to Departments
 
-<h3>3. REGISTER PHP WITH IIS</h3>
-Search the start menu for "IIS", right-click and <b>Run as Admin</b>. Select Register New PHP Version. In the pop-up, select the three dots and browse to the <code>C:\PHP</code> folder, select the <code>php-cgi</code> file, and select OK.  We'll reload IIS by restarting the web server. On the left side under Connections, right-click the vm and select Stop, right-click vm again and select Start, minimize IIS Manager as we will come back to it.
+1. In the Admin Panel, click the **Agents** tab (top navigation)
+2. Click **Departments**
+<img width="1192" height="542" alt="image" src="https://github.com/user-attachments/assets/f9afe735-576f-41f5-92af-b8402c75eb69" />
 
-<details><summary>See screenshots</summary>
-<img src="images/Step 4a.PNG" width="50%" >
-</details> 
+You should now see the Departments list.
+<img width="1194" height="409" alt="image" src="https://github.com/user-attachments/assets/66dd058e-56fb-4abb-bb16-f3160bb03356" />
 
-<h3>5. ENABLE OSTICKET FEATURES AND ASSIGN CONFIG PERMISSIONS</h3>
-In our installation folder, find <code>osTicket-v1.15.8.zip</code>, right-click and select Extract All, and then Extract. In the extracted folder, find and copy the upload folder to destination <code>C:inetpub\wwwroot</code>. Rename the upload folder to "osTicket" (no space, and uppercase T).
+---
 
-<details><summary>See screenshots</summary>
-<img src="images/Step 5a.PNG" width="50%" >
-</details> 
+### 3) Create the Required Departments
 
-Reload IIS by restarting the web server again, stop and start instructions from Step 3 and minimize IIS Manager. Now in your web browser, navigate to "http://localhost/osticket/setup/".
+You will repeat the same process for each department.
 
-<details><summary>See screenshots</summary>
-<img src="images/Step 5b.PNG" width="50%" >
-</details> 
+#### Click path to add a department
+1. On the **Departments** page, click **Add New Department**
+2. Fill in the **Name**
+3. (If prompted) Choose the department type / settings as defaults unless your lab requires otherwise
+4. Click **Create Dept** (or **Add Department**, depending on your version)
 
-Notice some features are not enabled here, we'll enable them next. Back in our IIS Manager, expand Site, expand Default Web Site and select folder osTicket.  Double-click PHP Manager, and select Enable or Disable an extension. 
+Create the following departments (one at a time):
 
-- Enable php_imap.dll
-- Enable php_intl.dll
-- Enable php_opcache.dll
+- `SysAdmins`
+- `Online Banking`
+- `Support`
 
-<details><summary>See screenshots</summary>
-<img src="images/Step 5c.PNG" width="33%" > <img src="images/Step 5d.PNG" width="33%" ><img src="images/Step 5e.PNG" width="33%" >
-</details> 
+> Tip: If your osTicket version shows a "Type" option, leave it as the default.  
+> The critical requirement for this lab is simply that these departments exist by name.
 
-Refresh the osTicket site in the web browser and notice the changes.
-Now we will be assigning permissions. Go to folder <code>C:\inetpub\wwwroot\osTicket\include</code> and find file <code>ost-sampleconfig.php</code>. Rename this file to <code>ost-config.php</code>. Now right-click file and select Properties. In Security tab, go to Advanced. Select Disable inhertiance > Remove all inhertied permissions. We are stripping away all current permissions here.
+---
 
-<details><summary>See screenshots</summary>
-<img src="images/Step 5f.PNG" width="50%" >
-</details> 
+### 4) Promote SysAdmins to a Top-Level Department
+
+Now that `SysAdmins` exists, we will make it a **Top-Level Department** (i.e., not a child of another department).
+
+1. In **Admin Panel → Agents → Departments**
+2. Click on **SysAdmins** (department name) to edit it
+3. Locate the **Parent Department** (or similar) setting
+4. Set it to **Top-Level** / **No Parent** / **—** (wording depends on version)
+5. Click **Save Changes** (or **Save Dept**)
+
+This step matters because it affects hierarchy and access behavior during escalation.
+
+---
+
+### 5) Delete the Maintenance Department (Do Not Archive)
+
+This lab requires **deleting** the Maintenance department entirely (not archiving it).
+
+1. In **Admin Panel → Agents → Departments**
+2. Click **Maintenance**
+3. Choose **Delete** (not Archive)
+4. Confirm the deletion when prompted
+<img width="1196" height="565" alt="image" src="https://github.com/user-attachments/assets/fbe5e57f-f4e8-4f13-9eb2-fbda585f9df8" />
 
 
-And then  we'll add permissions, select Add, Select Principles, in the object name text field, type, "Everyone" and then Check Names to underline our group and select OK. For basic permissions, select Full Control and OK.
+> If you only see "Archive" from the list view, click into the department first—many versions expose "Delete" from inside the department settings page.
 
-<details><summary>See screenshots</summary>
-<img src="images/Step 5g.PNG" width="33%" > <img src="images/Step 5h.PNG" width="33%" >
-</details> 
+---
 
-> [!NOTE]
-> Assigning Everyone permissions to ost-config.php is insecure because it allows unrestricted access to a sensitive configuration file. This is done temporarily in this lab to avoid installation issues; permissions should be restricted after setup in real environments.
+### 6) Confirm Department List Before Proceeding
 
-<h3>6. INSTALL HEIDISQL AND CONFIGURE SQL</h3>
+Before starting Ticket Scenario 1, confirm that the Departments list includes:
 
-Back in the web browser, we will continue the osTicket setup, select Continue >> near the bottom. 
-In System Settings, enter the help desk name and default email. In Admin User, enter admin name and admin email address, for username and password, we will set it to adminuser and <code>Password123!</code>. 
+- SysAdmins (Top-Level)
+- Online Banking
+- Support
 
-Before we select Install Now, we will need to configure our SQL and create the database and connection that osTicket will use.
+And that:
 
-<details><summary>See screenshots</summary>
-<img src="images/Step 6a.PNG" width="50%" >
-</details> 
+- Maintenance is deleted
+<img width="1193" height="533" alt="image" src="https://github.com/user-attachments/assets/91be35e6-2bde-4987-81a3-08efa8a87022" />
 
-Back in the installation folder, find <code>HeidiSQL_12.3.0.6589_Setup.exe</code>, and install it with all default settings, and select Finish to launch HeidiSQL. Select Skip, in this Session Manager window, Select +New, and type <code>root</code> for the password here, and select Open. Right-click the Unnamed session, and select Create new, and select Database. Enter for Name: osTicket (no space and capital T), and select OK.
 
-<details><summary>See screenshots</summary>
-<img src="images/Step 6b.PNG" width="40%" > <img src="images/Step 6c.PNG" width="40%" >
-</details> 
+Once this is confirmed, proceed to the **Agents and Department Access** section.
 
-Back in the web browser, we will continue the osTicket setup. Enter the following
-- MySQL Database: osTicket
-- MySQL Username: root
-- MySQL Password: root
-- **Select Install Now**
+---
 
-<details><summary>See screenshots</summary>
-<img src="images/Step 6d.PNG" width="50%" >
-</details> 
+## Pre-Lab Setup: Agents and Department Access
 
-<h3>7. VERIFY INSTALLTION AND FUNCTIONAILTY</h3>
-Congratulations, refer to the screenshots to ensure functionality!
-For Admin/Analyst/Agent Login: http://localhost/osTicket/scp/login.php
-For End User to create tickets: http://localhost/osTicket/
+The ticket lifecycle scenarios in this lab require multiple help desk agents with different department access levels.
 
-<details><summary>See screenshots</summary>
-<img src="images/Step 7a.PNG" width="30%" > <img src="images/Step 7b.PNG" width="30%" > <img src="images/Step 7c.PNG" width="30%" >
-</details> 
+During the osTicket installation process (Part 1), an **initial administrator account** is created. In this lab, that account is named **john**. Because this account already exists and has administrative access, we will **reuse it** rather than recreate it.
 
+We will:
+- Adjust **department access** for the existing `john` account
+- Create an additional agent (`jane`) to demonstrate escalation and role-based access control
+
+---
+
+### Agents Used in This Lab
+
+- **john** — Initial administrator account (created during installation)  
+- **jane** — Additional agent used for escalation and ticket resolution  
+
+---
+
+## Step-by-Step: Configure Agents in osTicket
+
+### 1) Log into the Admin Panel
+
+1. Navigate to:  
+   `http://localhost/osTicket/scp/login.php`
+2. Log in using the **john** account
+3. Click **Admin Panel** in the top navigation
+
+---
+
+### 2) Navigate to Agents
+
+1. In the Admin Panel, click the **Agents** tab
+2. Click **Agents** from the sub-menu
+
+You should now see a list of existing agents, for now only **john**.
+<img width="1196" height="432" alt="image" src="https://github.com/user-attachments/assets/a88e9b2f-91e3-4e16-9e2b-d2a2bf6c0565" />
+
+---
+
+## Configure Existing Agent: john
+
+The `john` account was created during installation and already has administrative access. In this lab, we will **limit department access intentionally** to demonstrate escalation behavior later.
+
+### 3) Assign Department Access for john
+
+1. Click **john** in the Agents list
+2. Locate the **Department Access** section
+3. Ensure access is granted to:
+   - `Support`
+4. Ensure **SysAdmins** is **not** assigned at this stage
+5. Save changes
+
+> John should not have access to the SysAdmins department yet.  
+> This restriction is required to demonstrate loss of access when tickets are escalated.
+
+---
+
+## Create New Agent: jane
+
+The `jane` account will be used to work escalated tickets and demonstrate role-based access control.
+
+### 4) Create Agent jane
+
+1. From the **Agents** page, click **Add New Agent**
+2. Fill in the following fields:
+
+**Account Information**
+- Name: `Jane Doe`
+- Username: `jane`
+- Email: (any valid test email)
+- Password: (set a password for the lab)
+
+**Access**
+- Primary Department: `SysAdmins`
+- Role: `Agent` or `Admin` (depending on your osTicket version)
+
+3. Click **Create** or **Add Agent**
+
+---
+
+### 5) Assign Department Access for jane
+
+1. Click **jane** in the Agents list
+2. Confirm access to:
+   - `SysAdmins`
+   - (Optional) `Support`
+3. Save changes
+
+Jane will be used to resolve escalated tickets that john cannot modify.
+
+---
+
+## Validation Before Proceeding
+
+Before starting Ticket Scenario 1, confirm the following:
+
+- **john**
+  - Can view and work tickets in `Support`
+  - Loses modification access when tickets escalate to `SysAdmins`
+
+- **jane**
+  - Can access the `SysAdmins` department
+  - Can work escalated tickets to completion
+  <img width="1196" height="462" alt="image" src="https://github.com/user-attachments/assets/49f7521b-9a4c-4d49-a13c-756c53c4746b" />
+
+
+Once these conditions are met, proceed to the ticket lifecycle scenarios.
+
+
+
+---
+
+## Ticket Scenario 1 — Critical Outage (SEV-A)
+
+### End User Action
+
+As an **end user**, create the following ticket:
+
+> **Subject:** Entire mobile/online banking system is down
+
+Submit the ticket through the **End User Portal**.
+
+<img width="1050" height="497" alt="image" src="https://github.com/user-attachments/assets/23ae8da9-a734-4fd0-af81-e8fddbe0ab61" />
+
+<img width="1048" height="842" alt="image" src="https://github.com/user-attachments/assets/1f5eb5d6-96ce-41a9-bed6-d0d18c6451a0" />
+
+
+
+---
+
+### Help Desk Agent Review (john)
+
+Log in as **Help Desk Agent (john)** and observe the ticket’s properties:
+
+- Priority
+- Department
+- SLA
+- Assigned To
+
+Do **not** change anything yet—only observe.
+
+---
+
+### Set Ticket Properties
+
+Update the ticket with the following settings:
+
+- **SLA:** Sev-A (1 hour, 24/7)
+- **Department:** Online Banking
+
+<img width="1194" height="758" alt="image" src="https://github.com/user-attachments/assets/5b8cf81d-c71f-4a67-9a6f-62733f977d87" />
+
+
+---
+
+### Access Validation
+
+Attempt to observe the ticket again as **john**.
+
+- Can you still view the ticket?
+- Can you modify the ticket?
+
+Take note of the behavior.
+
+---
+
+### Resolution
+
+Work the ticket to completion as **jane**.
+
+---
+
+## Ticket Scenario 2 — Software Request (SEV-B)
+
+### End User Action
+
+As an **end user**, create the following ticket:
+
+> **Subject:** Accounting department needs Adobe upgrade, broken
+
+<img width="992" height="796" alt="image" src="https://github.com/user-attachments/assets/a87e1a28-c67a-498a-94ce-b3d9840d7864" />
+
+---
+
+### Help Desk Agent Review (john)
+
+Log in as **john** and observe:
+
+- Priority
+- Department
+- SLA
+- Assigned To
+
+---
+
+### Set Ticket Properties
+
+Update the ticket:
+
+- **SLA:** Sev-B (4 hours, 24/7)
+- **Department:** Support
+
+<img width="1180" height="560" alt="image" src="https://github.com/user-attachments/assets/311a6dc0-5040-4966-9694-084c5ff43446" />
+
+---
+
+### Resolution
+
+Work the ticket to completion as **john**.
+
+---
+
+## Ticket Scenario 3 — Executive Hardware Issue (SEV-B)
+
+### End User Action
+
+As an **end user**, create the following ticket:
+
+> **Subject:** CFO’s laptop will no longer turn on
+
+<img width="1040" height="833" alt="image" src="https://github.com/user-attachments/assets/35bbd645-bb3e-441a-a231-4b698a928d11" />
+
+---
+
+### Help Desk Agent Review (john)
+
+Observe the ticket properties:
+
+- Priority
+- Department
+- SLA
+- Assigned To
+
+---
+
+### Set Ticket Properties
+
+Update the ticket:
+
+- **SLA:** Sev-B (4 hours, 24/7)
+- **Department:** Support
+
+<img width="1183" height="570" alt="image" src="https://github.com/user-attachments/assets/23d3f8f4-a47a-4f20-b420-c6318f059882" />
+
+---
+
+### Resolution
+
+Work the ticket to completion as **john**.
+
+---
+
+## Escalation and Permission Behavior
+
+### Escalate All Tickets
+
+Set **all tickets** to:
+
+- **SLA:** Sev-A  
+- **Department:** SysAdmins (last)
+
+Observe that the tickets become **inaccessible** to standard agents.
+
+---
+
+### Restore Visibility
+
+1. Switch to the **Admin Panel**
+2. Assign yourself **View access** to the **SysAdmins** department
+3. Switch back to the **Agent Panel**
+
+Observe:
+
+- You can now **see** the escalated ticket
+- You can **no longer modify** it
+
+This demonstrates role-based access control in osTicket.
+
+---
+
+## Final Resolution
+
+Solve all remaining tickets and confirm they are closed properly.
+
+---
+
+## Real-World Ticketing Concepts
+
+### Email Notifications
+
+In most ticketing systems (including osTicket):
+
+- Every ticket update triggers an **email notification**
+- End users receive updates automatically
+- Users can often **reply directly to emails**, which updates the ticket
+
+This creates a continuous communication loop.
+
+---
+
+### Ticket Intake in Real Life
+
+Tickets may originate from:
+
+- Phone calls
+- Chat applications
+- Email
+- Web forms
+- Hallway conversations or desk walk-ups
+
+While it is acceptable to fix issues on the spot, **best practice is to create a ticket for everything you do**.
+
+Why this matters:
+
+- Metrics
+- Accountability
+- Workload tracking
+- SLA reporting
+
+If it wasn’t ticketed, it effectively **didn’t happen**.
+
+---
+
+## Professional Takeaways
+
+This lab demonstrates practical experience with **enterprise-style ticketing workflows**, rather than isolated technical tasks.
+
+By repeatedly creating, triaging, escalating, and resolving tickets, this project highlights how structured ticketing systems support real-world IT operations, including:
+
+- Incident prioritization and SLA enforcement
+- Department-based ownership and role separation
+- Controlled escalation paths and access boundaries
+- Consistent communication between technical staff and end users
+
+These workflows closely mirror how tickets are handled in production IT environments.
+
+---
+
+## Operational Relevance
+
+In real IT environments, issues do not always originate from a web form. Requests may arrive via phone calls, chat tools, email, or informal walk-ups.
+
+This lab reinforces a core operational principle:
+
+**If work is not documented in a ticketing system, it cannot be tracked, measured, or improved.**
+
+By intentionally creating tickets for all work performed—regardless of intake method—organizations gain:
+
+- Accurate workload and performance metrics
+- SLA accountability
+- Clear prioritization of business-impacting incidents
+- Improved long-term service planning
+
+This project demonstrates an understanding of **why ticket discipline matters**, not just how to use the software.
+
+---
+
+## Skills Demonstrated
+
+This project showcases hands-on experience with:
+
+- End-user support workflows
+- Help desk triage and prioritization
+- SLA-driven incident response
+- Role-based access control and escalation
+- Agent versus administrator responsibilities
+- Documentation-first operational practices
+
+These skills are directly applicable to entry-level and junior roles in IT support, help desk operations, and systems administration.
+
+---
+
+## Continued Practice and Growth
+
+Ticketing systems are foundational tools in IT operations, and proficiency improves through repetition.
+
+Repeating this lab builds intuition around prioritization, escalation, and access control. Further exploration of email integration, automation, and reporting features would deepen operational effectiveness and readiness for real-world environments.
+
+---
+
+## Final Outcome
+
+This project demonstrates readiness for professional IT environments by combining:
+
+- Technical execution
+- Process awareness
+- Security-conscious behavior
+- Clear and structured documentation
+
+Together, these elements reflect the ability to function effectively within structured IT support teams and adapt to real-world operational demands.
+
+This concludes the osTicket project series.
